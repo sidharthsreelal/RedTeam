@@ -6,7 +6,7 @@ Fires independent agents at your idea simultaneously, each looking for a differe
 
 ## What it does
 
-Pick a mode (Stress Test, First Principles, OODA Loop, Temporal Lens, Inversion, Second Order, Brainstorm, or Chat). 4-7 frameworks run in parallel, streaming into a React Flow canvas. When done, a synthesis agent reads across all outputs and tells you what to do with them.
+Pick a mode (Stress Test, First Principles, OODA Loop, Temporal Lens, Inversion, Second Order, Brainstorm, or Chat). Up to 6 frameworks run in parallel, streaming into a React Flow canvas. In analytical modes, a synthesis agent reads across all outputs and gives you a conncise verdict.
 
 - **Continuation rounds** — follow up on any session; prior context is injected automatically
 - **Session Memory** — structured memory written after each round, persists across continuations
