@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "./landing.css";
+
 import { ThemeProvider } from "@/lib/theme";
 
 const geistSans = Geist({
@@ -13,10 +15,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "RedTeam - Refine Your Ideas",
+  title: "RedTeam - The Future of ideation.",
   description:
-    "Stress-test your ideas through multiple AI analytical frameworks running in parallel. Identify weaknesses, blind spots, and failure paths before committing.",
+    "RedTeam deploys up to 6 independent AI agents against your idea simultaneously. 7 adversarial modes. Real-time parallel streaming. Find your blind spots before the market does.",
 };
 
 export default function RootLayout({
@@ -29,7 +45,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
         {/* Inline script: apply stored theme before first paint — prevents FOUC */}
