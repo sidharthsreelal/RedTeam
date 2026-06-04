@@ -3,7 +3,11 @@
  * Handles: **bold**, *italic*, ## headings, `code`, > blockquotes, numbered/bulleted lists
  */
 export function stripMarkdown(text: string): string {
-  return text
+  let clean = text.trim();
+  clean = clean.replace(/^```[a-zA-Z]*\s*\n?/, '');
+  clean = clean.replace(/\n?```$/, '');
+
+  return clean
     .replace(/^#{1,6}\s+/gm, '')       // headings
     .replace(/\*\*(.+?)\*\*/g, '$1')   // bold
     .replace(/\*(.+?)\*/g, '$1')        // italic
