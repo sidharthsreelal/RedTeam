@@ -885,24 +885,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // ── Synthesis ── (skip for chat mode)
     const isChat = mode.id === 'chat';
+    const isPitch = mode.id === 'pitch';
     const successfulResults = results.filter((r) => r && r.length > 0);
     if (!isChat && successfulResults.length >= Math.min(3, mode.frameworks.length)) {
       dispatch({ type: 'UPDATE_SYNTHESIS', update: { status: 'idle', startTime: Date.now() } });
 
-      const summary = mode.frameworks
-        .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
-        .join('\n\n');
-
-      const synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
-        .replace('{INPUT}', input)
-        .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      // Build synthesis prompt — Pitch mode uses a custom deliverable-style prompt
+      let synthSystemPrompt: string;
+      let synthesisUserPrompt: string;
+      if (isPitch) {
+        const attacks: Partial<Record<string, string>> = {};
+        mode.frameworks.forEach((f, i) => { attacks[f.id] = results[i] || ''; });
+        synthSystemPrompt = PITCH_SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = buildPitchSynthesisPrompt(input, attacks);
+      } else {
+        const summary = mode.frameworks
+          .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
+          .join('\n\n');
+        synthSystemPrompt = SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
+          .replace('{INPUT}', input)
+          .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      }
 
       try {
         const res = await fetch('/api/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            systemPrompt: SYNTHESIS_SYSTEM_PROMPT,
+            systemPrompt: synthSystemPrompt,
             userPrompt: synthesisUserPrompt,
             apiConfig: resolveApiConfig(state.username),
           }),
@@ -1114,20 +1125,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!isChat && successfulResults.length >= Math.min(3, frameworks.length)) {
       dispatch({ type: 'UPDATE_CONTINUATION_SYNTHESIS', index: contIndex, update: { status: 'idle', startTime: Date.now() } });
 
-      const summary = frameworks
-        .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
-        .join('\n\n');
-
-      const synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
-        .replace('{INPUT}', input)
-        .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      // Build synthesis prompt — Pitch mode uses a custom deliverable-style prompt
+      let contSynthSystemPrompt: string;
+      let synthesisUserPrompt: string;
+      if (mode.id === 'pitch') {
+        const attacks: Partial<Record<string, string>> = {};
+        frameworks.forEach((f, i) => { attacks[f.id] = results[i] || ''; });
+        contSynthSystemPrompt = PITCH_SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = buildPitchSynthesisPrompt(input, attacks);
+      } else {
+        const summary = frameworks
+          .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
+          .join('\n\n');
+        contSynthSystemPrompt = SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
+          .replace('{INPUT}', input)
+          .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      }
 
       try {
         const res = await fetch('/api/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            systemPrompt: contextPrefix + '\n\n' + SYNTHESIS_SYSTEM_PROMPT,
+            systemPrompt: contextPrefix + '\n\n' + contSynthSystemPrompt,
             userPrompt: synthesisUserPrompt,
             apiConfig: resolveApiConfig(state.username),
           }),
