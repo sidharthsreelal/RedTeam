@@ -41,7 +41,7 @@ interface AppState {
   apiLog: ApiCallLog[];
 }
 
-const initialState: AppState = {
+const baseInitialState: AppState = {
   authenticated: false,
   username: '',
   canvasState: 'empty',
@@ -53,6 +53,27 @@ const initialState: AppState = {
   detailPanelNodeId: null,
   apiLog: [],
 };
+
+// Alias used by LOGOUT to reset to fully unauthenticated state
+const initialState = baseInitialState;
+
+// ── Auth persistence key ──────────────────────────────────────────────────────
+const AUTH_KEY = 'redteam_auth';
+const AUTH_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Lazy initializer — reads localStorage auth token on first render
+function getInitialState(): AppState {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    if (raw) {
+      const { username, ts } = JSON.parse(raw) as { username: string; ts: number };
+      if (Date.now() - ts < AUTH_TTL_MS && username) {
+        return { ...baseInitialState, authenticated: true, username };
+      }
+    }
+  } catch { /* silent */ }
+  return baseInitialState;
+}
 
 // ── Abort controller registry ────────────────────────────────────────────────
 // Tracks in-flight fetch controllers so we can abort them on demand.
@@ -114,8 +135,10 @@ type Action =
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'LOGIN':
+      try { localStorage.setItem(AUTH_KEY, JSON.stringify({ username: action.username, ts: Date.now() })); } catch { /* silent */ }
       return { ...state, authenticated: true, username: action.username };
     case 'LOGOUT':
+      try { localStorage.removeItem(AUTH_KEY); } catch { /* silent */ }
       return { ...initialState };
     case 'SELECT_MODE':
       return { ...state, selectedMode: action.mode, canvasState: 'input' };
@@ -706,7 +729,7 @@ const AppContext = createContext<{
 } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, undefined, getInitialState);
 
   // Track whether any session or continuation is currently executing
   const isExecuting =

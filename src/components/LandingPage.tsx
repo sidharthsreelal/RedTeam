@@ -31,19 +31,19 @@ const MODE_LABELS: Record<string, string> = {
 const FAQ_ITEMS = [
   {
     q: "How does the parallel agent system work?",
-    a: "RedTeam deploys up to 6 separate AI agents built on optimized system prompts. Each agent is locked to a specific analytical mode (like Devil's Advocate or Pre-Mortem) and works independently. A final synthesis agent compiles their critical feedback to highlight pivots and action items."
+    a: "RedTeam deploys up to 6 AI agents simultaneously, each locked to a specific analytical framework - like Devil's Advocate or Pre-Mortem. Each agent works independently with no knowledge of the others. A synthesis agent then reads all outputs and compiles the final verdict: what to kill, what to pivot, and what to strengthen."
   },
   {
-    q: "Can I upload proprietary business documents?",
-    a: "Yes. You can ground your sessions by uploading PDFs, Word documents, or text files. All parsing happens directly in your browser client. Your documents are session-scoped and never stored on our servers or used for model training."
+    q: "Can I upload my own documents?",
+    a: "Yes. Upload PDFs, Word documents, or plain text files to ground your session in real context. All parsing happens client-side in your browser. Documents are session-scoped - they are never stored on our servers or used to train models."
   },
   {
-    q: "Which AI models power the stress tests?",
-    a: "We run on a multi-provider backend utilizing Mistral (mistral-small, mistral-medium) and Gemini (gemini-1.5-pro, gemini-1.5-flash). RedTeam features automated fallback: if one provider encounters rate limits or network lag, the session seamlessly completes on the other."
+    q: "Which AI models power the agents?",
+    a: "RedTeam runs on a multi-provider backend using Mistral and Gemini. If one provider hits rate limits or goes down, the session automatically falls back to the other - you get your output regardless."
   },
   {
     q: "How does session memory work?",
-    a: "At the end of each round, a background task automatically generates a structured memory summary (goals, assumptions, critical vulnerabilities). This context is automatically injected into subsequent rounds so the agents keep building on your progress."
+    a: "After each round completes, a background process generates a structured memory summary covering your goals, key assumptions, and critical vulnerabilities. That context is automatically injected into the next round - so agents don't start from scratch, they build on what came before."
   }
 ];
 
@@ -396,14 +396,14 @@ function CanvasDemo() {
           <div className="lp-nd-top">
             <div>
               <p className="lp-nd-lbl">SYNTHESIS</p>
-              <p className="lp-nd-title">Strengthen Your Plan</p>
+              <p className="lp-nd-title">Synthesis</p>
             </div>
             <div className="lp-nd-dot" style={{ background: '#3B82F6' }} />
           </div>
           <p className="lp-nd-content">
             {PRESETS[activeIdea].synthesis.substring(0, synthProgress)}
             {phase === 'synthesis' && <span className="lp-cursor">|</span>}
-            {synthProgress === 0 && phase !== 'done' && <span className="lp-nd-waiting">Awaiting critique...</span>}
+            {synthProgress === 0 && phase !== 'done' && <span className="lp-nd-waiting">Awaiting agents...</span>}
           </p>
         </div>
       </div>
@@ -481,7 +481,6 @@ function LogoVertex() {
 export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
-  const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   /* Unlock scroll */
@@ -569,21 +568,20 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <section className="lp-hero">
         <div className="lp-hero-inner">
           <p className="lp-eyebrow lp-hero-anim" style={{ animationDelay: '0.1s' }}>
-            ADVERSARIAL INTELLIGENCE ENGINE
+            ADVERSARIAL AI &middot; PARALLEL AGENTS &middot; REAL-TIME
           </p>
           <h1 className="lp-hero-h1 lp-hero-anim" style={{ animationDelay: '0.3s' }}>
             The Future of<br />
             <em className="lp-hero-em">ideation.</em>
           </h1>
           <p className="lp-hero-sub lp-hero-anim" style={{ animationDelay: '0.5s' }}>
-            RedTeam deploys up to 6 independent AI agents at your idea simultaneously &mdash;
-            each hunting for a different class of failure. Seconds, not weeks.
+            RedTeam deploys up to 6 independent AI agents at your idea simultaneously - each hunting for a different class of failure. Not weeks. Seconds.
           </p>
           <div className="lp-hero-cta lp-hero-anim" style={{ animationDelay: '0.7s' }}>
             <button onClick={launch} className="lp-btn-lg">LAUNCH REDTEAM &rarr;</button>
           </div>
           <p className="lp-hero-meta lp-hero-anim" style={{ animationDelay: '0.9s' }}>
-            7 analytical modes &nbsp;&middot;&nbsp; up to 6 AI agents &nbsp;&middot;&nbsp; real-time streaming canvas
+            8 modes &nbsp;&middot;&nbsp; up to 6 parallel agents &nbsp;&middot;&nbsp; real-time streaming canvas
           </p>
         </div>
       </section>
@@ -592,20 +590,19 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <Section id="problem" className="lp-problem">
         <p className="lp-eyebrow">THE PROBLEM</p>
         <blockquote className="lp-pullquote">
-          &ldquo;Your worst ideas feel exactly like your best ideas &mdash;
-          until someone shows you what you can&rsquo;t see.&rdquo;
+          &ldquo;The people in the room will not save your plan. They will protect it.&rdquo;
         </blockquote>
-        <div className="lp-two-col">
-          <p>Founders beta-test with friends. Strategists bounce ideas off their team. Researchers run it past advisors. Everyone in the room shares the same blind spots you do.</p>
-          <p>The critical feedback that saves your plan is the feedback nobody in the room is equipped to give. RedTeam gives you that voice &mdash; structured, relentless, and incapable of being polite.</p>
+        <div>
+          <p>Founders beta-test with friends. Strategists pitch to their team. Researchers run it past advisors. The problem is everyone in the room shares the same blind spots you do.</p>
+          <p>The feedback that would actually save your plan is the feedback no one there is equipped to give. RedTeam fills that gap - structured, systematic, and completely immune to politeness.</p>
         </div>
       </Section>
 
       {/* -- Modes -- */}
       <Section id="modes" className="lp-modes">
-        <p className="lp-eyebrow">SEVEN MODES OF ATTACK</p>
-        <h2 className="lp-h2">Choose how to break your idea.</h2>
-        <p className="lp-lead">Each mode deploys a different cognitive framework. Pick one, and up to 6 agents run in parallel &mdash; each hunting for a different failure class.</p>
+        <p className="lp-eyebrow">EIGHT ANALYTICAL MODES</p>
+        <h2 className="lp-h2">Eight distinct lenses. One rigorous verdict.</h2>
+        <p className="lp-lead">Each mode applies a different analytical framework to your idea. Pick one, and up to 6 agents work in parallel - each examining a different dimension of your thinking.</p>
 
         <div className="lp-modes-grid">
           {MODES.filter(m => m.id !== 'chat').map(mode => (
@@ -633,8 +630,8 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
 
       {/* -- Features + Canvas Demo -- */}
       <Section id="features" className="lp-features">
-        <p className="lp-eyebrow">BUILT FOR DEPTH</p>
-        <h2 className="lp-h2">Not a chatbot. A war room.</h2>
+        <p className="lp-eyebrow">SEE IT IN ACTION</p>
+        <h2 className="lp-h2">Parallel agents. One canvas. Real-time results.</h2>
 
         <CanvasDemo />
       </Section>
@@ -645,9 +642,9 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <h2 className="lp-h2">Three steps to a stress-tested idea.</h2>
         <div className="lp-steps">
           {[
-            { n: '\u2460', title: 'Choose Your Mode', body: 'Pick how you want your idea attacked. 7 modes, each with a different analytical lens and agent configuration.' },
-            { n: '\u2461', title: 'Describe Your Idea', body: 'Tell it what you\'re building, planning, or deciding. Plain language. No templates. No prompting tricks.' },
-            { n: '\u2462', title: 'Read the Verdict', body: 'Up to 6 agents stream in parallel. A synthesis agent delivers the final verdict \u2014 risks, pivots, and paths forward.' },
+            { n: '\u2460', title: 'Choose Your Mode', body: 'Pick how you want your idea attacked. 8 modes, each with a distinct analytical lens and agent configuration.' },
+            { n: '\u2461', title: 'Describe Your Idea', body: 'Tell it what you\'re building, planning, or deciding. Plain language.' },
+            { n: '\u2462', title: 'Read the Verdict', body: 'Up to 6 agents stream in parallel. A synthesis agent delivers the final verdict: risks, pivots, and paths forward.' },
           ].map((step, i) => (
             <div key={i} className="lp-step">
               <div className="lp-step-num">{step.n}</div>
@@ -663,17 +660,6 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <p className="lp-eyebrow">PRICING</p>
         <h2 className="lp-h2">Simple pricing. No surprises.</h2>
         <p className="lp-lead">Start free. Upgrade when you&rsquo;re ready.</p>
-
-        {/* Pricing Toggle */}
-        <div className="lp-billing-toggle-container">
-          <span className={`lp-billing-label ${!annual ? 'active' : ''}`}>Monthly</span>
-          <button onClick={() => setAnnual(!annual)} className="lp-billing-toggle" aria-label="Toggle annual billing">
-            <div className={`lp-billing-toggle-knob ${annual ? 'annually' : ''}`} />
-          </button>
-          <span className={`lp-billing-label ${annual ? 'active' : ''}`}>
-            Annually <span className="lp-billing-badge-discount">Save 20%</span>
-          </span>
-        </div>
 
         <div className="lp-pricing-grid">
           <div className="lp-pricing-card">
@@ -696,26 +682,24 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             <span className="lp-pricing-badge">MOST POPULAR</span>
             <h3 className="lp-pricing-name">Pro</h3>
             <div className="lp-pricing-price">
-              <span className="lp-pricing-amount">{annual ? '$23' : '$29'}</span>
-              <span className="lp-pricing-period">{annual ? '/mo, billed annually' : '/month'}</span>
+              <span className="lp-pricing-amount">TBD</span>
             </div>
             <p className="lp-pricing-desc">For founders and strategists.</p>
             <ul className="lp-pricing-list">
               <li><span className="lp-check">&check;</span>Unlimited sessions</li>
-              <li><span className="lp-check">&check;</span>All 7 modes</li>
+              <li><span className="lp-check">&check;</span>All 8 modes</li>
               <li><span className="lp-check">&check;</span>Document grounding</li>
               <li><span className="lp-check">&check;</span>Web search</li>
               <li><span className="lp-check">&check;</span>Priority support</li>
               <li><span className="lp-check">&check;</span>Session export</li>
             </ul>
-            <button onClick={launch} className="lp-pricing-cta lp-pricing-cta-hot">Start Free Trial</button>
+            <button disabled className="lp-pricing-cta lp-pricing-cta-hot" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Coming Soon</button>
           </div>
 
           <div className="lp-pricing-card">
             <h3 className="lp-pricing-name">Team</h3>
             <div className="lp-pricing-price">
-              <span className="lp-pricing-amount">{annual ? '$63' : '$79'}</span>
-              <span className="lp-pricing-period">{annual ? '/mo, billed annually' : '/month'}</span>
+              <span className="lp-pricing-amount">TBD</span>
             </div>
             <p className="lp-pricing-desc">For teams that think together.</p>
             <ul className="lp-pricing-list">
@@ -726,7 +710,7 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
               <li><span className="lp-check">&check;</span>API access</li>
               <li><span className="lp-check">&check;</span>Dedicated support</li>
             </ul>
-            <button onClick={launch} className="lp-pricing-cta">Contact Us</button>
+            <button disabled className="lp-pricing-cta" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Coming Soon</button>
           </div>
         </div>
       </Section>
@@ -755,31 +739,18 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </Section>
 
-      {/* -- Social Proof with Stylized Brand Badges -- */}
-      <Section id="social" className="lp-social">
-        <p className="lp-eyebrow">TRUSTED BY THINKERS</p>
-        <p className="lp-lead" style={{ maxWidth: 520, margin: '0 auto 40px' }}>
-          Join founders, researchers, professors, and strategists who stress-test their ideas before the market does.
-        </p>
-        <div className="lp-logo-strip">
-          <LogoNova />
-          <LogoApex />
-          <LogoAether />
-          <LogoVortex />
-          <LogoVertex />
-        </div>
-      </Section>
+
 
       {/* -- Final CTA -- */}
       <section className="lp-final">
         <div className="lp-final-inner">
           <h2 className="lp-final-h2">
-            Stop asking friends.<br />
-            <em className="lp-hero-em">Start stress-testing.</em>
+            Your idea deserves<br />
+            <em className="lp-hero-em">a real second opinion.</em>
           </h2>
           <button onClick={launch} className="lp-btn-lg">LAUNCH REDTEAM &rarr;</button>
           <p className="lp-hero-meta" style={{ marginTop: 20 }}>
-            No credit card. No setup. Just your idea and 35 adversarial frameworks.
+            No credit card. No setup. Just your idea and 8 modes ready to attack it.
           </p>
         </div>
       </section>

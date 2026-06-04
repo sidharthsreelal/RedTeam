@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/lib/store';
 import { useTheme } from '@/lib/theme';
 import Backdrop from './Backdrop';
@@ -11,6 +12,7 @@ const USER_MEMORY_MAX = 1200;
 export default function SettingsPanel() {
   const { state, dispatch } = useApp();
   const { theme, toggle } = useTheme();
+  const router = useRouter();
   
   const [open, setOpen] = useState(false);
   const [memory, setMemory] = useState('');
@@ -203,7 +205,7 @@ export default function SettingsPanel() {
           {/* Section: Account */}
           <div className="p-2">
             <button
-               onClick={() => dispatch({ type: 'LOGOUT' })}
+               onClick={() => { dispatch({ type: 'LOGOUT' }); router.push('/'); }}
                className="w-full flex items-center gap-2 px-3 py-2 text-ghost hover:text-red-400 hover:bg-slate rounded transition-colors group"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

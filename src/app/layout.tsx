@@ -32,7 +32,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "RedTeam - The Future of ideation.",
   description:
-    "RedTeam deploys up to 6 independent AI agents against your idea simultaneously. 7 adversarial modes. Real-time parallel streaming. Find your blind spots before the market does.",
+    "RedTeam deploys up to 6 independent AI agents against your idea simultaneously. 8 analytical modes. Real-time parallel streaming. Find your blind spots before the market does.",
 };
 
 export default function RootLayout({

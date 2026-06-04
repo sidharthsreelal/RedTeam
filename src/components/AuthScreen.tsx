@@ -5,7 +5,7 @@ import { useApp } from '@/lib/store';
 import { useTheme } from '@/lib/theme';
 import GravityField from './GravityField';
 
-export default function AuthScreen() {
+export default function AuthScreen({ onSuccess }: { onSuccess?: () => void }) {
   const { dispatch } = useApp();
   const { theme } = useTheme();
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -38,6 +38,7 @@ export default function AuthScreen() {
         setFadeOut(true);
         setTimeout(() => {
           dispatch({ type: 'LOGIN', username });
+          onSuccess?.();
         }, 400);
       } else {
         setShaking(true);
@@ -67,11 +68,11 @@ export default function AuthScreen() {
         }`}
         style={{
           backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.15)',
-          borderColor: 'rgba(239, 68, 68, 0.7)', 
+          borderColor: 'rgba(255, 46, 56, 0.7)', 
           borderWidth: theme === 'dark' ? '1px' : '2px',
           zIndex: 1,
           backdropFilter: 'blur(16px)',
-          boxShadow: '0 0 25px rgba(239, 68, 68, 0.15)',
+          boxShadow: '0 0 25px rgba(255, 46, 56, 0.15)',
         }}
       >
         {/* System label */}
@@ -106,11 +107,11 @@ export default function AuthScreen() {
             placeholder="Enter username"
             className="w-full bg-void text-cloud text-sm px-3 py-2.5 rounded-none outline-none placeholder:text-ghost transition-colors duration-150"
             style={{
-              border: '1px solid rgba(239, 68, 68, 0.3)',
+              border: '1px solid rgba(255, 46, 56, 0.3)',
               outline: 'none',
             }}
-            onFocus={(e) => (e.target.style.borderColor = '#EF4444')}
-            onBlur={(e) => (e.target.style.borderColor = 'rgba(239, 68, 68, 0.3)')}
+            onFocus={(e) => (e.target.style.borderColor = '#ff2e38')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255, 46, 56, 0.3)')}
             autoComplete="off"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -135,12 +136,12 @@ export default function AuthScreen() {
               placeholder="Enter password"
               className="w-full bg-void text-cloud text-sm pl-3 pr-10 py-2.5 rounded-none outline-none placeholder:text-ghost transition-colors duration-150"
               style={{
-                border: '1px solid rgba(239, 68, 68, 0.3)',
+                border: '1px solid rgba(255, 46, 56, 0.3)',
                 outline: 'none',
               }}
               ref={passwordRef}
-              onFocus={(e) => (e.target.style.borderColor = '#EF4444')}
-              onBlur={(e) => (e.target.style.borderColor = 'rgba(239, 68, 68, 0.3)')}
+              onFocus={(e) => (e.target.style.borderColor = '#ff2e38')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255, 46, 56, 0.3)')}
             />
             <button
               type="button"
@@ -171,19 +172,19 @@ export default function AuthScreen() {
           disabled={loading || !username || !password}
           className="w-full font-mono text-xs uppercase tracking-[0.15em] py-3 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
           style={{
-            border: '1px solid #EF4444',
+            border: '1px solid #ff2e38',
             background: 'transparent',
-            color: '#EF4444',
+            color: '#ff2e38',
           }}
           onMouseEnter={(e) => {
             if (!loading) {
-              (e.target as HTMLButtonElement).style.background = '#EF4444';
+              (e.target as HTMLButtonElement).style.background = '#ff2e38';
               (e.target as HTMLButtonElement).style.color = 'white';
             }
           }}
           onMouseLeave={(e) => {
             (e.target as HTMLButtonElement).style.background = 'transparent';
-            (e.target as HTMLButtonElement).style.color = '#EF4444';
+            (e.target as HTMLButtonElement).style.color = '#ff2e38';
           }}
         >
           {loading ? (
