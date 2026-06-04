@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useReducer, useCallback, type ReactNode, type Dispatch } from 'react';
 import { Mode, Session, FrameworkOutput, CanvasState, FrameworkStatus, ContinuationGeneration, ApiCallLog, SessionMemory, UploadedDocument } from './types';
-import { MODES, SYNTHESIS_SYSTEM_PROMPT, SYNTHESIS_USER_TEMPLATE, hasCodeIntent as checkCodeIntent, CODE_INSTRUCTION, MEMORY_WRITER_SYSTEM, MEMORY_WRITER_USER_TEMPLATE, buildSessionMemoryContext } from './modes';
+import { MODES, SYNTHESIS_SYSTEM_PROMPT, SYNTHESIS_USER_TEMPLATE, PITCH_SYNTHESIS_SYSTEM_PROMPT, buildPitchSynthesisPrompt, hasCodeIntent as checkCodeIntent, CODE_INSTRUCTION, MEMORY_WRITER_SYSTEM, MEMORY_WRITER_USER_TEMPLATE, buildSessionMemoryContext } from './modes';
 import { StreamingBus } from './streamingBus';
 import { getApiConfig } from '@/components/ApiLogPanel';
 import type { ApiConfig } from '@/components/ApiLogPanel';
