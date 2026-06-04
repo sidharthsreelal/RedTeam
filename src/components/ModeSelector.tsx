@@ -14,6 +14,7 @@ const MODE_ICONS: Record<string, string> = {
   'temporal':          '◷',
   'brainstorm':        '☍',
   'chat':              '◐',
+  'pitch':             '◈',
 };
 
 
@@ -53,9 +54,10 @@ export default function ModeSelector() {
       <div
         className="grid w-full"
         style={{
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridAutoRows: '1fr',
           gap: 12,
-          maxWidth: 860,
+          maxWidth: 1140,
         }}
       >
         {MODES.map((mode: Mode) => {
@@ -96,9 +98,9 @@ export default function ModeSelector() {
                   : 'none',
                 transition: 'border-color 150ms ease, box-shadow 150ms ease, background 150ms ease',
                 cursor: 'pointer',
-                // Chat spans all 3 columns; all others are uniform height
-                gridColumn: isChatMode ? '1 / -1' : 'auto',
-                minHeight: isChatMode ? 0 : 164,
+                // All mode boxes are of uniform size and flow in grid columns
+                gridColumn: 'auto',
+                minHeight: 164,
               }}
             >
               {/* Accent dot — top right */}
