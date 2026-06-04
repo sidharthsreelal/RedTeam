@@ -1,6 +1,6 @@
 // ── Color accent map ──
 export type AccentColor =
-  | '#EF4444'  // red
+  | '#ff2e38'  // red
   | '#F97316'  // orange
   | '#3B82F6'  // blue
   | '#8B5CF6'  // violet
@@ -9,7 +9,11 @@ export type AccentColor =
   | '#0EA5E9'  // sky
   | '#14B8A6'  // teal
   | '#06B6D4'  // cyan
-  | '#EC4899'; // pink
+  | '#EC4899'  // pink
+  | '#F43F5E'  // rose (Pitch framework)
+  | '#FB923C'  // warm orange (Pitch framework)
+  | '#A78BFA'  // lavender purple (Codestral/Framework)
+  | '#0000ff'; // pure blue (Pitch mode)
 
 // ── Framework definition ──
 export interface Framework {
