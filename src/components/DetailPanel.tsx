@@ -108,7 +108,8 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
             fontSize: 12,
             lineHeight: 1.65,
             color: 'var(--color-cloud)',
-            whiteSpace: 'pre',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
             tabSize: 2,
           }}
         >
@@ -117,6 +118,14 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
       </div>
     </div>
   );
+}
+
+// Helper to strip outermost markdown code fences (```[lang] ... ```)
+function cleanMarkdownFences(text: string): string {
+  let clean = text.trim();
+  clean = clean.replace(/^```[a-zA-Z]*\s*\n?/, '');
+  clean = clean.replace(/\n?```$/, '');
+  return clean.trim();
 }
 
 export default function DetailPanel() {
@@ -196,20 +205,23 @@ function resolveNode(
   let accent = '#3B82F6';
   let content = '';
   let status = '';
+  let modeId = '';
 
   // 1. Input node
   if (nodeId === 'input') {
-    return { label: 'INPUT', title: 'User Input', accent: '#3B82F6', content: session.input, status: 'complete' };
+    return { label: 'INPUT', title: 'User Input', accent: '#3B82F6', content: session.input, status: 'complete', modeId: session.modeId };
   }
 
   // 2. Primary synthesis node
   if (nodeId === 'synthesis') {
+    const isPitch = session.modeId === 'pitch';
     return {
-      label: 'SYNTHESIS',
-      title: 'Strengthen Your Plan',
-      accent: '#3B82F6',
+      label: isPitch ? 'YOUR PITCH' : 'SYNTHESIS',
+      title: isPitch ? 'Your Pitch' : 'Strengthen Your Plan',
+      accent: isPitch ? '#0000ff' : '#3B82F6',
       content: session.synthesisOutput.content,
       status: session.synthesisOutput.status,
+      modeId: session.modeId,
     };
   }
 
@@ -219,12 +231,14 @@ function resolveNode(
     const idx = parseInt(contSynthMatch[1], 10);
     const cont = session.continuations?.find((c) => c.index === idx);
     if (cont) {
+      const contIsPitch = cont.modeId === 'pitch';
       return {
-        label: `SYNTHESIS · ROUND ${idx}`,
-        title: 'Strengthen Your Plan',
-        accent: '#3B82F6',
+        label: contIsPitch ? `YOUR PITCH · ROUND ${idx}` : `SYNTHESIS · ROUND ${idx}`,
+        title: contIsPitch ? 'Your Pitch' : 'Strengthen Your Plan',
+        accent: contIsPitch ? '#0000ff' : '#3B82F6',
         content: cont.synthesisOutput.content,
         status: cont.synthesisOutput.status,
+        modeId: cont.modeId,
       };
     }
   }
@@ -278,9 +292,10 @@ function resolveNode(
     accent = framework.accent;
     content = output.content;
     status = output.status;
+    modeId = session.modeId;
   }
 
-  return { label, title, accent, content, status };
+  return { label, title, accent, content, status, modeId };
 }
 
 // ── Bus ID resolver: maps a panel nodeId to its StreamingBus channel ─────────
@@ -297,7 +312,7 @@ function resolveBusId(nodeId: string): string {
 
 // ── Panel content component ───────────────────────────────────
 function PanelContent({
-  label, title, accent, content, status, nodeId, session, onClose, onRerun, onCancelSession, onExportTree,
+  label, title, accent, content, status, nodeId, session, onClose, onRerun, onCancelSession, onExportTree, modeId,
 }: {
   label: string;
   title: string;
@@ -305,6 +320,7 @@ function PanelContent({
   content: string;
   status: string;
   nodeId: string;
+  modeId?: string;
   session: Pick<Session, 'input' | 'modeName' | 'timestamp'>;
   onClose: () => void;
   onRerun?: () => Promise<void>;
@@ -336,7 +352,7 @@ function PanelContent({
       if (!isStreamingRef.current) return;
       if (streamContentRef.current) {
         // Write the full accumulated text — panel is tall enough to show everything
-        streamContentRef.current.textContent = text;
+        streamContentRef.current.textContent = cleanMarkdownFences(text);
       }
       // Auto-scroll to keep the cursor visible at the bottom
       if (streamScrollRef.current) {
@@ -432,9 +448,9 @@ function PanelContent({
               style={{
                 padding: '2px 7px',
                 height: 22,
-                background: 'rgba(239,68,68,0.08)',
-                border: '0.5px solid rgba(239,68,68,0.5)',
-                color: '#EF4444',
+                background: 'rgba(255,46,56,0.08)',
+                border: '0.5px solid rgba(255,46,56,0.5)',
+                color: '#ff2e38',
                 cursor: 'pointer',
                 flexShrink: 0,
                 gap: 4,
@@ -490,6 +506,27 @@ function PanelContent({
 
       {/* Content */}
       <div ref={streamScrollRef} className="flex-1 overflow-y-auto px-5 py-4">
+        {/* Pitch outline label — only for Pitch synthesis nodes */}
+        {(nodeId === 'synthesis' || nodeId.startsWith('synthesis-cont-node-')) && modeId === 'pitch' && (
+          <div
+            style={{
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottom: '0.5px solid var(--color-stone)',
+            }}
+          >
+            <p
+              className="font-mono uppercase"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.2em',
+                color: '#0000ff',
+              }}
+            >
+              PITCH OUTLINE — READY TO USE
+            </p>
+          </div>
+        )}
         {nodeId === 'input' ? (
           <p className="text-[13px] text-fog leading-[1.75]">{content}</p>
 
@@ -585,6 +622,8 @@ function PanelContent({
                         overflowX: 'auto',
                         maxHeight: 280,
                         margin: '10px 0',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {children}
@@ -596,7 +635,7 @@ function PanelContent({
                 ),
               }}
             >
-              {content}
+              {cleanMarkdownFences(content)}
             </ReactMarkdown>
           </div>
         ) : (
