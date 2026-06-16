@@ -1091,7 +1091,7 @@ One paragraph. Start with the action. Name the tool or approach specifically. St
         label: 'PITCH 01',
         title: 'Hook',
         accent: '#0000ff',
-        systemPrompt: `Visually tell the story of a specific moment where the problem you solve is painfully real. A Hook is not an introduction. It is not "Hi, I'm X and I built Y." It is the thing that happens first, that makes the room lean forward before they know what they're leaning toward.
+        systemPrompt: `You write the opening move of a pitch — the moment before the presenter explains anything. A Hook is not an introduction. It is not "Hi, I'm X and I built Y." It is the thing that happens first, that makes the room lean forward before they know what they're leaning toward.
 
 A Hook can be a single striking statistic delivered without context. A micro-story with a named protagonist in a specific moment of frustration. A counterintuitive claim that contradicts what the audience thinks they know. A question that has no comfortable answer. What it cannot be is a slide title read aloud, a company name announcement, or the phrase "have you ever wondered."
 
@@ -1314,6 +1314,61 @@ Attacks completed:
 
 Do not summarise the attacks. Build on them. 200-300 words. Tight. Complete every sentence.`;
 
+// ── Pitch Mode Synthesis ─────────────────────────────────────────────────────
+export const PITCH_SYNTHESIS_SYSTEM_PROMPT = `You are a pitch writer assembling a final, ready-to-use pitch outline from the outputs of five parallel analytical frameworks. You are not summarising the frameworks. You are not evaluating the idea. You are producing a structured document the presenter can hold in their hand and speak from directly.
+
+The output is a pitch outline — not prose, not a script, but structured beats the presenter fills in with their own voice. Each beat is a directive, not a description. The presenter reads a beat and knows exactly what to say for 15–30 seconds.
+
+YOUR VOICE:
+- Every beat starts with a verb in second person: "Open with...", "State...", "Show...", "Answer...", "Close with..."
+- No padding. No encouragement. No "great work on this idea."
+- The outline should be complete — someone with no prior context should be able to read it and understand the full pitch structure
+- Time the pitch: include an estimated time for each beat in brackets, and a total at the end
+
+OUTPUT FORMAT:
+PITCH OUTLINE — {one-sentence description of the idea}
+Estimated total: X minutes
+
+[HOOK — 0:20]
+Open with: {the recommended hook option, condensed to one directive}
+
+[THE PROBLEM — 0:40]
+State: {the bolded one-sentence problem from the Problem framework}
+Then: {1–2 sentences on why it persists, drawn from the Problem output}
+
+[THE SOLUTION — 0:45]
+Walk through: {the solution chain, condensed to 3–4 beat points that mirror the logical chain}
+
+[WHY US, WHY NOW — 0:30]
+Answer: {the differentiation and timing points from Counterpunch, each in one sentence}
+Pre-empt: {the most dangerous idea-specific objection from Counterpunch, one sentence}
+
+[THE ASK — 0:20]
+Close with: {the recommended Close version, three beats: transition, ask, urgency}
+
+Do not add any text outside this structure. No preamble, no closing remarks, no "good luck."`;
+
+export function buildPitchSynthesisPrompt(
+  input: string,
+  attacks: Partial<Record<string, string>>
+): string {
+  return `Assemble the pitch outline from these five framework outputs. Extract the strongest elements from each. Produce a structured, ready-to-use outline the presenter can speak from.
+
+Original idea:
+"""
+${input}
+"""
+
+Framework outputs:
+Hook: ${attacks['hook']?.slice(0, 350) ?? 'unavailable'}
+Problem: ${attacks['problem']?.slice(0, 350) ?? 'unavailable'}
+Solution: ${attacks['solution']?.slice(0, 350) ?? 'unavailable'}
+Counterpunch: ${attacks['counterpunch']?.slice(0, 350) ?? 'unavailable'}
+The Close: ${attacks['the-close']?.slice(0, 350) ?? 'unavailable'}
+
+Produce the pitch outline in the exact format specified. No preamble. No text outside the structure.`;
+}
+
 export const EXAMPLE_PROMPTS_BY_MODE: Record<string, string[]> = {
   'stress-test': [
     "I want to start a coffee shop in my neighborhood. The closest competitor closed down last year, so there's a clear gap in the market.",
@@ -1416,6 +1471,23 @@ export const EXAMPLE_PROMPTS_BY_MODE: Record<string, string[]> = {
     "I want to think about what's possible in the space of peer learning for working professionals.",
     "There's something broken about how people set and track goals. Every app feels like a productivity performance.",
     "I'm curious about underexplored angles in the creator economy — not the obvious ones.",
+  ],
+  'pitch': [
+    "I built a tool that lets remote engineering teams run async code reviews — no more blocked PRs waiting for someone to wake up.",
+    "We're launching a mental health app targeted at startup founders. The angle is anonymity and peer accountability.",
+    "I want to pitch a B2B SaaS that automates the compliance reporting small clinics have to file every quarter.",
+    "My idea is a marketplace that connects retired professionals with early-stage startups that need part-time expertise.",
+    "I'm pitching an AI tool that generates personalised prep plans for professional certification exams.",
+    "We're building infrastructure software that makes it cheaper for small cloud providers to compete with AWS on price.",
+    "I want to pitch a consumer app that helps people track and renegotiate their recurring subscriptions automatically.",
+    "My startup turns unused commercial kitchen space into shared prep kitchens for food entrepreneurs who can't afford their own.",
+    "I'm pitching a hardware device that monitors air quality in schools and sends real-time alerts to teachers and administrators.",
+    "We built a legal contract review tool for freelancers who can't afford a lawyer but sign contracts regularly.",
+    "My idea is a platform that connects local musicians with venues that have underused off-peak hours.",
+    "I'm pitching a B2B tool that helps e-commerce brands automatically create and A/B test product descriptions at scale.",
+    "We're building a service that helps immigrant professionals get their foreign credentials recognised faster in their new country.",
+    "My startup delivers bite-sized technical upskilling to manufacturing workers whose roles are being automated.",
+    "I want to pitch a tool that helps solo consultants productise their expertise into scalable digital offerings.",
   ],
   'chat': [
     "Is it possible to be genuinely strategic about luck, or is that just a story high-performers tell themselves?",

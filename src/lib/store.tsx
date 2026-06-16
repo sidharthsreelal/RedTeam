@@ -61,13 +61,7 @@ const baseInitialState: AppState = {
 // Alias used by LOGOUT to reset to fully unauthenticated state
 const initialState = baseInitialState;
 
-<<<<<<< Updated upstream
-// ── Auth persistence key ──────────────────────────────────────────────────────
-const AUTH_KEY = 'redteam_auth';
-const AUTH_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-=======
->>>>>>> Stashed changes
 // Lazy initializer — reads localStorage auth token on first render
 function getInitialState(): AppState {
   try {

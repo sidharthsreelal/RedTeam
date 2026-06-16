@@ -1,6 +1,7 @@
 // ── Color accent map ──
 export type AccentColor =
   | '#ff2e38'  // red
+  | '#EF4444'  // red-500 (used across multiple modes)
   | '#F97316'  // orange
   | '#3B82F6'  // blue
   | '#8B5CF6'  // violet
