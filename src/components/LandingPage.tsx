@@ -12,8 +12,9 @@ const MODE_ICONS: Record<string, string> = {
   'ooda-loop':        '\u25CE',
   'first-principles': '\u2B21',
   'inversion':        '\u21BB',
-  'temporal':          '\u25F7',
+  'temporal':         '\u25F7',
   'brainstorm':       '\u260D',
+  'pitch':            '\u25C8',
   'chat':             '\u25D0',
 };
 
@@ -24,6 +25,7 @@ const MODE_LABELS: Record<string, string> = {
   'inversion':        '4 AGENTS \u00B7 CONTRARIAN \u00B7 PARALLEL',
   'temporal':         '5 AGENTS \u00B7 TEMPORAL \u00B7 PARALLEL',
   'brainstorm':       '6 AGENTS \u00B7 GENERATIVE \u00B7 PARALLEL',
+  'pitch':            '5 AGENTS \u00B7 NARRATIVE \u00B7 SEQUENTIAL',
   'chat':             'DIRECT \u00B7 ONE NODE \u00B7 CONTINUOUS',
 };
 
@@ -285,6 +287,17 @@ function CanvasDemo() {
     return () => clearInterval(timer);
   }, [phase, activeIdea]);
 
+  // Auto-advance to next preset after 8s of inactivity in 'done' phase
+  useEffect(() => {
+    if (phase !== 'done') return;
+    const t = setTimeout(() => {
+      const next = (activeIdea + 1) % PRESETS.length;
+      selectIdea(next);
+    }, 8000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, activeIdea]);
+
   const selectIdea = (index: number) => {
     setActiveIdea(index);
     setPhase('typing-input');
@@ -411,69 +424,7 @@ function CanvasDemo() {
   );
 }
 
-/* --- Inline Brand SVG Logo Badges --- */
-function LogoNova() {
-  return (
-    <div className="lp-brand-badge">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lp-brand-logo-svg">
-        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
-        <line x1="12" y1="22" x2="12" y2="12" />
-        <line x1="12" y1="12" x2="22" y2="8.5" />
-        <line x1="12" y1="12" x2="2" y2="8.5" />
-      </svg>
-      <span className="lp-brand-badge-name">NOVA.AI</span>
-    </div>
-  );
-}
 
-function LogoApex() {
-  return (
-    <div className="lp-brand-badge">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lp-brand-logo-svg">
-        <path d="M12 2L2 22h20L12 2z" />
-        <path d="M12 10l-4 8h8l-4-8z" />
-      </svg>
-      <span className="lp-brand-badge-name">APEX</span>
-    </div>
-  );
-}
-
-function LogoAether() {
-  return (
-    <div className="lp-brand-badge">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lp-brand-logo-svg">
-        <path d="M12 2L2 12l10 10 10-10L12 2z" />
-        <path d="M12 6l-6 6 6 6 6-6-6-6z" />
-      </svg>
-      <span className="lp-brand-badge-name">AETHER</span>
-    </div>
-  );
-}
-
-function LogoVortex() {
-  return (
-    <div className="lp-brand-badge">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lp-brand-logo-svg">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-        <path d="M2 12h20" />
-      </svg>
-      <span className="lp-brand-badge-name">VORTEX</span>
-    </div>
-  );
-}
-
-function LogoVertex() {
-  return (
-    <div className="lp-brand-badge">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lp-brand-logo-svg">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-        <line x1="4" y1="22" x2="4" y2="15" />
-      </svg>
-      <span className="lp-brand-badge-name">VERTEX</span>
-    </div>
-  );
-}
 
 /* ==========================================================
    MAIN LANDING PAGE
@@ -584,6 +535,10 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             8 modes &nbsp;&middot;&nbsp; up to 6 parallel agents &nbsp;&middot;&nbsp; real-time streaming canvas
           </p>
         </div>
+        <div className="lp-scroll-hint">
+          <div className="lp-scroll-hint-line" />
+          <div className="lp-scroll-hint-dot" />
+        </div>
       </section>
 
       {/* -- Problem -- */}
@@ -693,7 +648,15 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
               <li><span className="lp-check">&check;</span>Priority support</li>
               <li><span className="lp-check">&check;</span>Session export</li>
             </ul>
-            <button disabled className="lp-pricing-cta lp-pricing-cta-hot" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Coming Soon</button>
+            <div className="lp-waitlist">
+              <input
+                type="email"
+                className="lp-waitlist-input"
+                placeholder="your@email.com"
+                id="waitlist-email"
+              />
+              <button className="lp-waitlist-btn">Join Waitlist</button>
+            </div>
           </div>
 
           <div className="lp-pricing-card">
@@ -710,7 +673,7 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
               <li><span className="lp-check">&check;</span>API access</li>
               <li><span className="lp-check">&check;</span>Dedicated support</li>
             </ul>
-            <button disabled className="lp-pricing-cta" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Coming Soon</button>
+            <button disabled className="lp-pricing-cta lp-pricing-cta-disabled">Coming Soon</button>
           </div>
         </div>
       </Section>
@@ -750,7 +713,7 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           </h2>
           <button onClick={launch} className="lp-btn-lg">LAUNCH REDTEAM &rarr;</button>
           <p className="lp-hero-meta" style={{ marginTop: 20 }}>
-            No credit card. No setup. Just your idea and 8 modes ready to attack it.
+            8 modes &nbsp;&middot;&nbsp; up to 36 agents &nbsp;&middot;&nbsp; 0 politeness.
           </p>
         </div>
       </section>
