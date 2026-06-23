@@ -1084,13 +1084,13 @@ One paragraph. Start with the action. Name the tool or approach specifically. St
     id: 'pitch',
     name: 'PITCH',
     tagline: 'Turn your idea into a pitch worth hearing',
-    accent: '#0000ff',
+    accent: '#F43F5E',
     frameworks: [
       {
         id: 'hook',
         label: 'PITCH 01',
         title: 'Hook',
-        accent: '#0000ff',
+        accent: '#A78BFA',
         systemPrompt: `You write the opening move of a pitch — the moment before the presenter explains anything. A Hook is not an introduction. It is not "Hi, I'm X and I built Y." It is the thing that happens first, that makes the room lean forward before they know what they're leaning toward.
 
 A Hook can be a single striking statistic delivered without context. A micro-story with a named protagonist in a specific moment of frustration. A counterintuitive claim that contradicts what the audience thinks they know. A question that has no comfortable answer. What it cannot be is a slide title read aloud, a company name announcement, or the phrase "have you ever wondered."
