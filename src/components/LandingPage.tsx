@@ -6,6 +6,12 @@ import dynamic from 'next/dynamic';
 
 const FaultyTerminal = dynamic(() => import('./FaultyTerminal'), { ssr: false });
 
+// Module-level constant so the array reference is stable across LandingPage re-renders.
+// If this were an inline literal `[2, 1]` passed as a prop, every re-render would
+// create a new array reference → FaultyTerminal's useEffect would see a changed
+// `gridMul` dependency → tear down + recreate the whole WebGL renderer → white flash.
+const TERMINAL_GRID_MUL: [number, number] = [2, 1];
+
 /* --- Mode display data --- */
 const MODE_ICONS: Record<string, string> = {
   'stress-test':      '\u29C7',
@@ -480,23 +486,28 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="lp-terminal-bg">
         <FaultyTerminal
           scale={2.5}
-          gridMul={[2, 1]}
+          gridMul={TERMINAL_GRID_MUL}
           digitSize={2.1}
           timeScale={0.5}
           scanlineIntensity={0.5}
           glitchAmount={1}
           flickerAmount={1}
-          noiseAmp={0.9}
+          noiseAmp={0.8}
           chromaticAberration={0}
           curvature={0.1}
           tint="#ff0000"
           mouseReact={true}
           mouseStrength={0.5}
           pageLoadAnimation={true}
-          brightness={0.5}
+          brightness={0.4}
         />
       </div>
       <div className="lp-terminal-overlay" />
+
+      {/* -- Page content wrapper: overflow-x clip lives here, NOT on lp-root,
+           so the position:fixed terminal layers above keep the viewport as
+           their containing block and stay visible while scrolling. -- */}
+      <div className="lp-content">
 
       {/* -- Navbar -- */}
       <nav className={`lp-nav ${scrolled ? 'lp-nav-scrolled' : ''}`}>
@@ -560,27 +571,21 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <p className="lp-lead">Each mode applies a different analytical framework to your idea. Pick one, and up to 6 agents work in parallel - each examining a different dimension of your thinking.</p>
 
         <div className="lp-modes-grid">
-          {MODES.filter(m => m.id !== 'chat').map(mode => (
+          {[...MODES.filter(m => m.id !== 'chat'), ...MODES.filter(m => m.id === 'chat')].map((mode, i) => (
             <div key={mode.id} className="lp-mode-card" style={{ '--mode-accent': mode.accent } as React.CSSProperties}>
+              <span className="lp-mode-idx">{String(i + 1).padStart(2, '0')}</span>
               <span className="lp-mode-icon" style={{ color: mode.accent }}>{MODE_ICONS[mode.id]}</span>
               <p className="lp-mode-name">{mode.name}</p>
               <p className="lp-mode-tagline">{mode.tagline}</p>
-              <div className="lp-mode-rule" style={{ background: `${mode.accent}30` }} />
-              <p className="lp-mode-meta" style={{ color: mode.accent }}>{MODE_LABELS[mode.id]}</p>
+              <div className="lp-mode-rule" style={{ background: `linear-gradient(to right, ${mode.accent}99, transparent)` }} />
+              <div className="lp-mode-meta">
+                {MODE_LABELS[mode.id].split(' · ').map((chip, ci) => (
+                  <span key={ci} className="lp-mode-chip" style={{ color: mode.accent, borderColor: `${mode.accent}40` }}>{chip}</span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-
-        {MODES.filter(m => m.id === 'chat').map(mode => (
-          <div key={mode.id} className="lp-mode-card lp-mode-chat" style={{ '--mode-accent': mode.accent } as React.CSSProperties}>
-            <span className="lp-mode-icon" style={{ color: mode.accent }}>{MODE_ICONS[mode.id]}</span>
-            <div className="lp-mode-chat-body">
-              <p className="lp-mode-name">{mode.name}</p>
-              <p className="lp-mode-tagline">{mode.tagline}</p>
-            </div>
-            <p className="lp-mode-meta" style={{ color: mode.accent }}>{MODE_LABELS[mode.id]}</p>
-          </div>
-        ))}
       </Section>
 
       {/* -- Features + Canvas Demo -- */}
@@ -734,6 +739,8 @@ export default function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           <p className="lp-footer-copy">&copy; {new Date().getFullYear()} RedTeam. The future of ideation.</p>
         </div>
       </footer>
+
+      </div>{/* /lp-content */}
     </div>
   );
 }
