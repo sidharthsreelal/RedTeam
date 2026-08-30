@@ -388,7 +388,9 @@ export default function FaultyTerminal({
       renderer.render({ scene: mesh });
     };
     rafRef.current = requestAnimationFrame(update);
-    // Force canvas to fill container absolutely — OGL doesn't add positioning styles
+    // Force canvas to fill container absolutely — OGL doesn't add positioning styles.
+    // will-change + translateZ force GPU layer promotion, preventing the compositor
+    // from showing a white background during scroll (documented Chromium behaviour).
     const canvas = gl.canvas as HTMLCanvasElement;
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
@@ -396,6 +398,8 @@ export default function FaultyTerminal({
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.display = 'block';
+    canvas.style.willChange = 'transform';
+    canvas.style.transform = 'translateZ(0)';
     ctn.appendChild(canvas);
 
     if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
@@ -441,6 +445,11 @@ export default function FaultyTerminal({
         position: 'absolute',
         inset: 0,
         overflow: 'hidden',
+        // Force this container onto its own GPU compositing layer.
+        // Prevents the compositor from flashing white during scroll
+        // (the canvas texture is always ready on its own layer).
+        willChange: 'transform',
+        transform: 'translateZ(0)',
         ...style,
       }}
       {...rest}
