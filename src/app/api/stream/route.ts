@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 export const runtime = 'edge'; // Use Edge runtime to bypass Vercel Hobby 10s timeout for streaming
 
 // ── Provider defaults (used when no config passed) ─────────────────────────────
-const DEFAULT_GEMINI_MODEL   = 'gemini-3.1-flash-lite-preview';
+const DEFAULT_GEMINI_MODEL   = 'gemini-3.8-flash';
 const GEMINI_BASE    = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 const DEFAULT_MISTRAL_MODEL  = 'mistral-medium-latest';
@@ -154,6 +154,8 @@ async function streamGemini(
 
   const decoder = new TextDecoder();
   let buf = '';
+  let hasEmittedText = false;         // Bug 2: track whether any real text was streamed
+  let lastFinishReason: string | null = null; // Bug 3: track non-normal finish reasons
 
   try {
     while (true) {
@@ -188,6 +190,7 @@ async function streamGemini(
             .map((p) => p.text ?? '')
             .join('');
           if (text) {
+            hasEmittedText = true;
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ content: text })}\n\n`)
             );
@@ -196,6 +199,7 @@ async function streamGemini(
           // Check for finish reason (end of stream)
           const finishReason = parsed?.candidates?.[0]?.finishReason;
           if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+            lastFinishReason = finishReason;
             // e.g. SAFETY block — surface it but don't hard-fail
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ info: `Gemini stopped: ${finishReason}` })}\n\n`)
@@ -206,6 +210,15 @@ async function streamGemini(
     }
   } finally {
     reader.releaseLock();
+  }
+
+  // Bug 2+3: If the stream completed but no actual text was emitted,
+  // treat as failure so the caller can fall back to the other provider.
+  // This catches safety blocks, empty responses, and recitation stops.
+  if (!hasEmittedText) {
+    const reason = lastFinishReason ? ` (${lastFinishReason})` : '';
+    console.warn(`[Gemini] Stream completed with no text output${reason} (model: ${model})`);
+    return { ok: false, quota: false, error: `Gemini returned empty response${reason}` };
   }
 
   return { ok: true, quota: false };
@@ -246,7 +259,8 @@ async function streamMistral(
   }
 
   if (res.status === 429) {
-    return { ok: false, error: 'Mistral rate-limited.' };
+    console.warn(`[Mistral] Rate-limited (429) — model: ${model}`);
+    return { ok: false, error: `Mistral rate-limited (model: ${model}). Try again in a few seconds.` };
   }
 
   if (!res.ok) {
@@ -305,21 +319,20 @@ async function streamMistral(
 // Maps every model family to the right concurrency queue so burst parallel
 // framework calls don't hit rate-limit walls and produce silent empty output.
 function acquireMistralLock(model: string): Promise<() => void> | null {
-  if (model.includes('mistral-large') || model.includes('magistral-medium')) {
-    // Large / flagship reasoning — strictest cap (1 concurrent, 1 s delay)
+  if (model.includes('magistral-medium')) {
+    // Flagship reasoning — strictest cap (1 concurrent, 1 s delay)
     return mistralLargeQueue.acquire();
   }
   if (
     model.includes('mistral-small') ||
     model.includes('ministral') ||
     model.includes('magistral-small') ||
-    model.startsWith('devstral') ||
     model.startsWith('codestral')
   ) {
     // Small, compact, and specialist models — moderate cap (3 concurrent)
     return mistralSmallQueue.acquire();
   }
-  // Medium and other models — no queue (parallel-safe)
+  // Medium (incl. mistral-medium-3.5) and other models — no queue (parallel-safe)
   return null;
 }
 

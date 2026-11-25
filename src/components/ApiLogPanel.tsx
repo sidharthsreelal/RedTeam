@@ -22,24 +22,23 @@ const PROVIDER_ICONS: Record<string, string> = {
 
 // ── Model lists ────────────────────────────────────────────────────────────────
 const GEMINI_MODELS: { id: string; tag?: string }[] = [
-  { id: 'gemini-3.1-flash-lite-preview', tag: 'DEFAULT' },
-  { id: 'gemini-3-flash-preview', tag: 'NEW•STABLE' },
-  { id: 'gemini-3.1-pro-preview', tag: 'NEW•PRO' },
-  { id: 'gemini-2.5-flash-lite', tag: 'FAST' },
-  { id: 'gemini-2.5-flash', tag: 'STABLE' },
-  { id: 'gemini-2.5-pro', tag: 'PRO' },
+  { id: 'gemini-3.8-flash', tag: 'DEFAULT' },
+  { id: 'gemini-3.7-flash', tag: 'FAST' },
+  { id: 'gemini-3.6-flash', tag: 'STABLE' },
+  { id: 'gemini-3.5-flash', tag: 'PREV' },
+  { id: 'gemini-3.5-flash-lite', tag: 'LITE' },
+  { id: 'gemini-3.1-pro-preview', tag: 'PRO' },
   { id: 'gemma-4-31b-it', tag: 'OPEN•PRO' },
   { id: 'gemma-4-26b-a4b-it', tag: 'OPEN' },
 ];
 
 const MISTRAL_MODELS: { id: string; tag?: string }[] = [
   { id: 'mistral-medium-latest', tag: 'DEFAULT' },
-  { id: 'mistral-medium-2505', tag: 'STABLE' },
-  { id: 'mistral-large-2411', tag: 'PRO' },
-  { id: 'mistral-large-latest', tag: 'NEW•PRO' },
-  { id: 'magistral-small-latest', tag: 'REASONING' },
-  { id: 'devstral-latest', tag: 'NEW•CODE' },
-  { id: 'devstral-2512', tag: 'CODE' },
+  { id: 'mistral-medium-3.5', tag: 'NEW' },
+  { id: 'mistral-small-latest', tag: 'SMALL' },
+  { id: 'magistral-medium-latest', tag: 'REASONING' },
+  { id: 'magistral-small-latest', tag: 'FAST REASONING' },
+  { id: 'codestral-latest', tag: 'CODE' },
 ];
 
 // ── localStorage config ────────────────────────────────────────────────────────
@@ -53,7 +52,7 @@ const CONFIG_KEY = 'redteam_api_config';
 
 const DEFAULT_CONFIG: ApiConfig = {
   primary: 'gemini',
-  geminiModel: 'gemini-3.1-flash-lite-preview',
+  geminiModel: 'gemini-3.8-flash',
   mistralModel: 'mistral-medium-latest',
 };
 
@@ -167,6 +166,10 @@ const TAG_COLORS: Record<string, { bg: string; color: string }> = {
   'NEW•PRO': { bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
   POWERFUL: { bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
   REASONING: { bg: 'rgba(236,72,153,0.15)', color: '#F472B6' },
+  'FAST REASONING': { bg: 'rgba(236,72,153,0.12)', color: '#F472B6' },
+  NEW: { bg: 'rgba(16,185,129,0.12)', color: '#34D399' },
+  SMALL: { bg: 'rgba(16,185,129,0.12)', color: '#34D399' },
+  LITE: { bg: 'rgba(107,114,128,0.15)', color: '#9CA3AF' },
   CODE: { bg: 'rgba(6,182,212,0.12)', color: '#22D3EE' },
   'NEW•CODE': { bg: 'rgba(6,182,212,0.12)', color: '#22D3EE' },
   OPEN: { bg: 'rgba(249,115,22,0.15)', color: '#FB923C' },

@@ -415,8 +415,6 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
-    default:
-      return state;
     case 'LOAD_API_LOGS':
       return { ...state, apiLog: action.logs };
     case 'ADD_API_LOG': {
@@ -430,6 +428,8 @@ function reducer(state: AppState, action: Action): AppState {
         apiLog: validLogs,
       };
     }
+    default:
+      return state;
   }
 }
 
@@ -515,7 +515,7 @@ async function writeSessionMemory(
         userPrompt,
         apiConfig: {
           primary: 'mistral' as const,
-          mistralModel: 'mistral-medium-2505',
+          mistralModel: 'mistral-medium-latest',
           geminiModel: resolveApiConfig(username).geminiModel,
         },
         isMemoryWriter: true,
@@ -693,7 +693,7 @@ async function readStream(
 
         if (parsed.provider && onProvider) {
           onProvider(parsed);
-          continue;
+          // Don't continue — the same event may also carry content
         }
 
         if (parsed.error) {
