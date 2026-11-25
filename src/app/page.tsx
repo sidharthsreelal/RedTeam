@@ -1,23 +1,11 @@
 'use client';
 
-import { AppProvider, useApp } from '@/lib/store';
-import AuthScreen from '@/components/AuthScreen';
-import Workspace from '@/components/Workspace';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
-function AppContent() {
-  const { state } = useApp();
-
-  if (!state.authenticated) {
-    return <AuthScreen />;
-  }
-
-  return <Workspace />;
-}
+const LandingPage = dynamic(() => import('@/components/LandingPage'), { ssr: false });
 
 export default function Home() {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
-  );
+  const router = useRouter();
+  return <LandingPage onLaunch={() => router.push('/login')} />;
 }

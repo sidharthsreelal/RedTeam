@@ -31,7 +31,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* ── Dark mode tokens (default) ───────────────── */
+/* ── Dark mode tokens (default) ──────────────────── */
 :root,
 [data-theme="dark"] {
   --rt-void:       #08090C;
@@ -48,7 +48,7 @@
   --rt-signal-bg:  rgba(59,130,246,0.08);
 }
 
-/* ── Light mode tokens ────────────────────────── */
+/* ── Light mode tokens ──────────────────────────── */
 [data-theme="light"] {
   --rt-void:       #EAECF0;
   --rt-ink:        #FFFFFF;
@@ -64,7 +64,7 @@
   --rt-signal-bg:  rgba(29,78,216,0.06);
 }
 
-/* ── Global theme transition ──────────────────── */
+/* ── Global theme transition ──────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   transition: background-color 200ms, border-color 200ms, color 200ms;
@@ -89,7 +89,7 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ── Scrollbar ────────────────────────────────── */
+/* ── Scrollbar ───────────────────────────────────── */
 ::-webkit-scrollbar        { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track  { background: transparent; }
 ::-webkit-scrollbar-thumb  { background: var(--rt-ash); border-radius: 2px; }
@@ -98,13 +98,13 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Selection ────────────────────────────────── */
+/* ── Selection ───────────────────────────────────── */
 ::selection {
   background: rgba(59, 130, 246, 0.3);
   color: var(--rt-white);
 }
 
-/* ── Focus ────────────────────────────────────── */
+/* ── Focus ───────────────────────────────────────── */
 :focus-visible {
   outline: 1px solid var(--rt-signal);
   outline-offset: 1px;
@@ -114,19 +114,19 @@ textarea:focus-visible,
   outline: none !important;
 }
 
-/* ── contenteditable placeholder ─────────────── */
+/* ── contenteditable placeholder ────────────────── */
 [contenteditable][data-placeholder]:empty::before {
   content: attr(data-placeholder);
   color: var(--rt-ghost);
   pointer-events: none;
 }
 
-/* ── Swap button rotate transition ────────────── */
+/* ── Swap button rotate transition ───────────────── */
 .swap-btn {
   transition: transform 300ms ease, border-color 150ms;
 }
 
-/* ── Keyframes ────────────────────────────────── */
+/* ── Keyframes ───────────────────────────────────── */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
@@ -175,7 +175,7 @@ textarea:focus-visible,
 }
 .spin { animation: spin 0.8s linear infinite; }
 
-/* ── React Flow overrides ─────────────────────── */
+/* ── React Flow overrides ────────────────────────── */
 .react-flow__background {
   background: var(--rt-void) !important;
 }

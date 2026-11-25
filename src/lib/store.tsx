@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useReducer, useCallback, type ReactNode, type Dispatch } from 'react';
 import { Mode, Session, FrameworkOutput, CanvasState, FrameworkStatus, ContinuationGeneration, ApiCallLog, SessionMemory, UploadedDocument } from './types';
-import { MODES, SYNTHESIS_SYSTEM_PROMPT, SYNTHESIS_USER_TEMPLATE, hasCodeIntent as checkCodeIntent, CODE_INSTRUCTION, MEMORY_WRITER_SYSTEM, MEMORY_WRITER_USER_TEMPLATE, buildSessionMemoryContext } from './modes';
+import { MODES, SYNTHESIS_SYSTEM_PROMPT, SYNTHESIS_USER_TEMPLATE, PITCH_SYNTHESIS_SYSTEM_PROMPT, buildPitchSynthesisPrompt, hasCodeIntent as checkCodeIntent, CODE_INSTRUCTION, MEMORY_WRITER_SYSTEM, MEMORY_WRITER_USER_TEMPLATE, buildSessionMemoryContext } from './modes';
 import { StreamingBus } from './streamingBus';
 import { getApiConfig } from '@/components/ApiLogPanel';
 import type { ApiConfig } from '@/components/ApiLogPanel';
@@ -27,6 +27,10 @@ export function getUserMemory(): string {
   } catch { return ''; }
 }
 
+// ── Auth persistence key ──────────────────────────────────────────────────────
+const AUTH_KEY = 'redteam_auth';
+const AUTH_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 // ── State ──
 interface AppState {
   authenticated: boolean;
@@ -41,7 +45,7 @@ interface AppState {
   apiLog: ApiCallLog[];
 }
 
-const initialState: AppState = {
+const baseInitialState: AppState = {
   authenticated: false,
   username: '',
   canvasState: 'empty',
@@ -53,6 +57,24 @@ const initialState: AppState = {
   detailPanelNodeId: null,
   apiLog: [],
 };
+
+// Alias used by LOGOUT to reset to fully unauthenticated state
+const initialState = baseInitialState;
+
+
+// Lazy initializer — reads localStorage auth token on first render
+function getInitialState(): AppState {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    if (raw) {
+      const { username, ts } = JSON.parse(raw) as { username: string; ts: number };
+      if (Date.now() - ts < AUTH_TTL_MS && username) {
+        return { ...baseInitialState, authenticated: true, username };
+      }
+    }
+  } catch { /* silent */ }
+  return baseInitialState;
+}
 
 // ── Abort controller registry ────────────────────────────────────────────────
 // Tracks in-flight fetch controllers so we can abort them on demand.
@@ -114,8 +136,10 @@ type Action =
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'LOGIN':
+      try { localStorage.setItem(AUTH_KEY, JSON.stringify({ username: action.username, ts: Date.now() })); } catch { /* silent */ }
       return { ...state, authenticated: true, username: action.username };
     case 'LOGOUT':
+      try { localStorage.removeItem(AUTH_KEY); } catch { /* silent */ }
       return { ...initialState };
     case 'SELECT_MODE':
       return { ...state, selectedMode: action.mode, canvasState: 'input' };
@@ -391,8 +415,6 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
-    default:
-      return state;
     case 'LOAD_API_LOGS':
       return { ...state, apiLog: action.logs };
     case 'ADD_API_LOG': {
@@ -406,6 +428,8 @@ function reducer(state: AppState, action: Action): AppState {
         apiLog: validLogs,
       };
     }
+    default:
+      return state;
   }
 }
 
@@ -491,7 +515,7 @@ async function writeSessionMemory(
         userPrompt,
         apiConfig: {
           primary: 'mistral' as const,
-          mistralModel: 'mistral-medium-2505',
+          mistralModel: 'mistral-medium-latest',
           geminiModel: resolveApiConfig(username).geminiModel,
         },
         isMemoryWriter: true,
@@ -669,7 +693,7 @@ async function readStream(
 
         if (parsed.provider && onProvider) {
           onProvider(parsed);
-          continue;
+          // Don't continue — the same event may also carry content
         }
 
         if (parsed.error) {
@@ -706,7 +730,7 @@ const AppContext = createContext<{
 } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, undefined, getInitialState);
 
   // Track whether any session or continuation is currently executing
   const isExecuting =
@@ -885,24 +909,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // ── Synthesis ── (skip for chat mode)
     const isChat = mode.id === 'chat';
+    const isPitch = mode.id === 'pitch';
     const successfulResults = results.filter((r) => r && r.length > 0);
     if (!isChat && successfulResults.length >= Math.min(3, mode.frameworks.length)) {
       dispatch({ type: 'UPDATE_SYNTHESIS', update: { status: 'idle', startTime: Date.now() } });
 
-      const summary = mode.frameworks
-        .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
-        .join('\n\n');
-
-      const synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
-        .replace('{INPUT}', input)
-        .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      // Build synthesis prompt — Pitch mode uses a custom deliverable-style prompt
+      let synthSystemPrompt: string;
+      let synthesisUserPrompt: string;
+      if (isPitch) {
+        const attacks: Partial<Record<string, string>> = {};
+        mode.frameworks.forEach((f, i) => { attacks[f.id] = results[i] || ''; });
+        synthSystemPrompt = PITCH_SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = buildPitchSynthesisPrompt(input, attacks);
+      } else {
+        const summary = mode.frameworks
+          .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
+          .join('\n\n');
+        synthSystemPrompt = SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
+          .replace('{INPUT}', input)
+          .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      }
 
       try {
         const res = await fetch('/api/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            systemPrompt: SYNTHESIS_SYSTEM_PROMPT,
+            systemPrompt: synthSystemPrompt,
             userPrompt: synthesisUserPrompt,
             apiConfig: resolveApiConfig(state.username),
           }),
@@ -1114,20 +1149,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!isChat && successfulResults.length >= Math.min(3, frameworks.length)) {
       dispatch({ type: 'UPDATE_CONTINUATION_SYNTHESIS', index: contIndex, update: { status: 'idle', startTime: Date.now() } });
 
-      const summary = frameworks
-        .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
-        .join('\n\n');
-
-      const synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
-        .replace('{INPUT}', input)
-        .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      // Build synthesis prompt — Pitch mode uses a custom deliverable-style prompt
+      let contSynthSystemPrompt: string;
+      let synthesisUserPrompt: string;
+      if (mode.id === 'pitch') {
+        const attacks: Partial<Record<string, string>> = {};
+        frameworks.forEach((f, i) => { attacks[f.id] = results[i] || ''; });
+        contSynthSystemPrompt = PITCH_SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = buildPitchSynthesisPrompt(input, attacks);
+      } else {
+        const summary = frameworks
+          .map((f, i) => `${f.title}: ${(results[i] || '').slice(0, 400)}`)
+          .join('\n\n');
+        contSynthSystemPrompt = SYNTHESIS_SYSTEM_PROMPT;
+        synthesisUserPrompt = SYNTHESIS_USER_TEMPLATE
+          .replace('{INPUT}', input)
+          .replace('{SUMMARY_OF_COMPLETED_ATTACKS}', summary);
+      }
 
       try {
         const res = await fetch('/api/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            systemPrompt: contextPrefix + '\n\n' + SYNTHESIS_SYSTEM_PROMPT,
+            systemPrompt: contextPrefix + '\n\n' + contSynthSystemPrompt,
             userPrompt: synthesisUserPrompt,
             apiConfig: resolveApiConfig(state.username),
           }),
